@@ -114,42 +114,51 @@ function initParticles() {
 // ==========================================
 // Music Player Control
 // ==========================================
+let musicPlaying = false;
+
 function initMusicPlayer() {
     const musicToggle = document.getElementById('music-toggle');
     const bgMusic = document.getElementById('bg-music');
     const musicIcon = musicToggle.querySelector('.music-icon');
     
-    let isPlaying = false;
+    // Set volume
+    bgMusic.volume = 0.7;
     
-    // Try to auto-play music
-    const playPromise = bgMusic.play();
+    // Start with muted icon
+    musicIcon.textContent = '🔇';
+    musicToggle.classList.add('muted');
     
-    if (playPromise !== undefined) {
-        playPromise.then(() => {
-            isPlaying = true;
-            musicIcon.textContent = '🎵';
-            musicToggle.classList.remove('muted');
-        }).catch(error => {
-            // Auto-play was prevented
-            console.log('Auto-play prevented:', error);
-            isPlaying = false;
-            musicIcon.textContent = '🔇';
-            musicToggle.classList.add('muted');
-        });
-    }
+    // Function to start music
+    window.startMusic = function() {
+        if (musicPlaying) return;
+        
+        const playPromise = bgMusic.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                musicPlaying = true;
+                musicIcon.textContent = '🎵';
+                musicToggle.classList.remove('muted');
+                console.log('Music is playing');
+            }).catch(error => {
+                console.log('Music play error:', error);
+            });
+        }
+    };
     
     // Toggle music on button click
-    musicToggle.addEventListener('click', function() {
-        if (isPlaying) {
+    musicToggle.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent double triggering
+        if (musicPlaying) {
             bgMusic.pause();
             musicIcon.textContent = '🔇';
             musicToggle.classList.add('muted');
-            isPlaying = false;
+            musicPlaying = false;
         } else {
             bgMusic.play();
             musicIcon.textContent = '🎵';
             musicToggle.classList.remove('muted');
-            isPlaying = true;
+            musicPlaying = true;
         }
     });
 }
@@ -202,23 +211,21 @@ function initCakeAnimation() {
         });
     });
     
-    // Click to trigger explosion
+    // Click to trigger explosion and start music
     let explosionTriggered = false;
     
     cakeContainer.addEventListener('click', function() {
         if (!explosionTriggered) {
             explosionTriggered = true;
+            
+            // Start music when cake is clicked
+            if (typeof window.startMusic === 'function') {
+                window.startMusic();
+            }
+            
             triggerExplosion();
         }
     });
-    
-    // Auto-trigger after 5 seconds if not clicked
-    setTimeout(function() {
-        if (!explosionTriggered) {
-            explosionTriggered = true;
-            triggerExplosion();
-        }
-    }, 5000);
 }
 
 // ==========================================
@@ -331,12 +338,8 @@ function triggerExplosion() {
             // Trigger confetti
             createConfetti();
             
-            // Reinitialize gallery layout
-            setTimeout(function() {
-                if (window.masonryInstance) {
-                    window.masonryInstance.layout();
-                }
-            }, 100);
+            // Start slideshow
+            startSlideshow();
         }
     });
 }
@@ -405,81 +408,199 @@ function createConfetti() {
 }
 
 // ==========================================
-// Gallery System with Masonry & Lightbox
+// Gallery System - PPT Style Slideshow
 // ==========================================
 function initGallery() {
-    const galleryGrid = document.getElementById('gallery-grid');
+    // Gallery items will be shown one at a time in slideshow
+    const galleryItems = document.querySelectorAll('.gallery-item');
     
-    // Wait for images to load before initializing masonry
-    if (typeof imagesLoaded !== 'undefined' && typeof Masonry !== 'undefined') {
-        imagesLoaded(galleryGrid, function() {
-            // Initialize Masonry (note: we're using CSS Grid instead, but keeping this for compatibility)
-            window.masonryInstance = new Masonry(galleryGrid, {
-                itemSelector: '.gallery-item',
-                columnWidth: '.gallery-item',
-                percentPosition: true,
-                gutter: 20
-            });
-        });
-    }
+    // Hide all items initially
+    galleryItems.forEach(item => {
+        item.style.display = 'none';
+    });
     
-    // Initialize SimpleLightbox
-    if (typeof SimpleLightbox !== 'undefined') {
-        const lightbox = new SimpleLightbox('.gallery-item', {
-            sourceAttr: 'href',
-            overlay: true,
-            spinner: true,
-            nav: true,
-            navText: ['←', '→'],
-            close: true,
-            closeText: '×',
-            showCounter: true,
-            animationSpeed: 250,
-            animationSlide: true,
-            swipeClose: true,
-            captionSelector: 'self',
-            captionType: 'attr',
-            captionsData: 'alt',
-            captionPosition: 'bottom',
-            captionDelay: 250
-        });
-    }
+    // Setup click handlers for image preview
+    setupImagePreview();
+}
+
+// ==========================================
+// Image Preview Modal
+// ==========================================
+function setupImagePreview() {
+    const modal = document.getElementById('image-preview-modal');
+    const previewImage = document.getElementById('preview-image');
+    const previewCaption = document.getElementById('preview-caption');
+    const closeButton = modal.querySelector('.preview-close');
+    const galleryItems = document.querySelectorAll('.gallery-item');
     
-    // Add 3D tilt effect on hover (for desktop only)
-    if (window.innerWidth > 768) {
-        const galleryItems = document.querySelectorAll('.gallery-item');
-        
-        galleryItems.forEach(item => {
-            item.addEventListener('mousemove', function(e) {
-                const rect = item.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                
-                const rotateX = (y - centerY) / 10;
-                const rotateY = (centerX - x) / 10;
-                
-                gsap.to(item, {
-                    duration: 0.3,
-                    rotationX: rotateX,
-                    rotationY: rotateY,
-                    transformPerspective: 1000,
-                    ease: 'power2.out'
-                });
-            });
+    // Prevent default link behavior and show preview
+    galleryItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            item.addEventListener('mouseleave', function() {
-                gsap.to(item, {
-                    duration: 0.5,
-                    rotationX: 0,
-                    rotationY: 0,
-                    ease: 'power2.out'
-                });
-            });
+            const img = item.querySelector('img');
+            const caption = item.querySelector('.item-caption');
+            
+            if (img) {
+                // Pause slideshow
+                pauseSlideshow();
+                
+                // Set preview content
+                previewImage.src = img.src;
+                previewImage.alt = img.alt;
+                if (caption) {
+                    previewCaption.textContent = caption.textContent;
+                } else {
+                    previewCaption.textContent = '';
+                }
+                
+                // Show modal
+                modal.classList.add('active');
+            }
         });
+    });
+    
+    // Close modal functions
+    function closeModal() {
+        modal.classList.remove('active');
+        // Resume slideshow
+        resumeSlideshow();
     }
+    
+    closeButton.addEventListener('click', closeModal);
+    
+    // Close on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+    
+    // Close on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+}
+
+// ==========================================
+// PPT-Style Slideshow
+// ==========================================
+let currentSlide = 0;
+let slideshowInterval;
+let slideshowPaused = false;
+
+function startSlideshow() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const totalSlides = galleryItems.length;
+    
+    if (totalSlides === 0) return;
+    
+    // Show first slide
+    showSlide(0);
+    
+    // Auto-advance every 4 seconds
+    slideshowInterval = setInterval(function() {
+        if (!slideshowPaused) {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+    }, 4000);
+}
+
+function pauseSlideshow() {
+    slideshowPaused = true;
+}
+
+function resumeSlideshow() {
+    slideshowPaused = false;
+}
+
+function showSlide(index) {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    // Hide all slides
+    galleryItems.forEach((item, i) => {
+        if (i === index) {
+            item.style.display = 'block';
+            item.style.opacity = '0';
+            
+            // Random entrance effect
+            const effects = [
+                // Zoom in
+                () => {
+                    gsap.fromTo(item, 
+                        { scale: 0.5, opacity: 0, rotation: -10 },
+                        { scale: 1, opacity: 1, rotation: 0, duration: 1, ease: 'power2.out' }
+                    );
+                },
+                // Slide from right
+                () => {
+                    gsap.fromTo(item,
+                        { x: 200, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+                    );
+                },
+                // Slide from left
+                () => {
+                    gsap.fromTo(item,
+                        { x: -200, opacity: 0 },
+                        { x: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+                    );
+                },
+                // Fade + scale
+                () => {
+                    gsap.fromTo(item,
+                        { scale: 1.2, opacity: 0 },
+                        { scale: 1, opacity: 1, duration: 1, ease: 'power2.out' }
+                    );
+                },
+                // Rotate in
+                () => {
+                    gsap.fromTo(item,
+                        { rotationY: 90, opacity: 0 },
+                        { rotationY: 0, opacity: 1, duration: 1, ease: 'back.out(1.7)' }
+                    );
+                }
+            ];
+            
+            // Pick random effect
+            const randomEffect = effects[Math.floor(Math.random() * effects.length)];
+            randomEffect();
+            
+            // Add continuous subtle animation while displayed (only on desktop)
+            const img = item.querySelector('img');
+            if (img && window.innerWidth > 768) {
+                // Slow zoom effect (desktop only to prevent mobile overflow)
+                gsap.to(img, {
+                    scale: 1.1,
+                    duration: 3.5,
+                    ease: 'power1.inOut'
+                });
+            }
+            
+            // Show caption with delay
+            const overlay = item.querySelector('.item-overlay');
+            if (overlay) {
+                gsap.fromTo(overlay,
+                    { y: 100, opacity: 0 },
+                    { y: 0, opacity: 1, duration: 0.8, delay: 0.5, ease: 'power2.out' }
+                );
+            }
+        } else {
+            // Fade out other slides
+            if (item.style.display !== 'none') {
+                gsap.to(item, {
+                    opacity: 0,
+                    duration: 0.5,
+                    onComplete: () => {
+                        item.style.display = 'none';
+                    }
+                });
+            }
+        }
+    });
 }
 
 // ==========================================
@@ -491,13 +612,6 @@ window.addEventListener('resize', function() {
     if (explosionCanvas && explosionCanvas.style.opacity !== '0') {
         explosionCanvas.width = window.innerWidth;
         explosionCanvas.height = window.innerHeight;
-    }
-    
-    // Re-layout masonry on resize
-    if (window.masonryInstance) {
-        setTimeout(function() {
-            window.masonryInstance.layout();
-        }, 100);
     }
 });
 
