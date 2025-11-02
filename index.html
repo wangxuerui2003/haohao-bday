@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日快乐 杨博皓! 🎂</title>
+    
+    <!-- Preload critical assets -->
+    <link rel="preload" as="image" href="./public/images/cake/cake.png">
+    <link rel="preload" as="image" href="./public/images/cake/sparkles.png">
+    <link rel="preload" as="audio" href="./public/audio/生日祝福歌.opus">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="./styles.css">
+    
+    <!-- CDN Libraries -->
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- Particles.js for background effects -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    
+    <!-- Masonry for grid layout -->
+    <script src="https://unpkg.com/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+    
+    <!-- imagesLoaded -->
+    <script src="https://unpkg.com/imagesloaded@5.0.0/imagesloaded.pkgd.min.js"></script>
+    
+    <!-- SimpleLightbox -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplelightbox/2.14.2/simple-lightbox.min.js"></script>
+</head>
+<body>
+    <!-- Background Particles -->
+    <div id="particles-js"></div>
+    
+    <!-- Music Toggle Button -->
+    <button id="music-toggle" class="music-toggle" aria-label="Toggle music">
+        <span class="music-icon">🎵</span>
+    </button>
+    
+    <!-- Audio Element -->
+    <audio id="bg-music" loop>
+        <source src="./public/audio/生日祝福歌.opus" type="audio/ogg; codecs=opus">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- Intro Section - Cake Animation -->
+    <section id="intro-section" class="intro-section">
+        <div class="cake-container">
+            <div class="glow-effect"></div>
+            <img src="./public/images/cake/cake.png" alt="Birthday Cake" class="cake-image" id="cake-image">
+            <img src="./public/images/cake/sparkles.png" alt="Sparkles" class="sparkles-image" id="sparkles-image">
+        </div>
+        <h1 class="birthday-title">生日快乐，杨博皓! 🎉</h1>
+        <p class="click-hint">点击蛋糕开始...</p>
+    </section>
+    
+    <!-- Gallery Section -->
+    <section id="gallery-section" class="gallery-section hidden">
+        <div class="gallery-header">
+            <h2 class="gallery-title">美好回忆 💫</h2>
+            <div class="logo-container">
+                <img src="./public/images/ixing.png" alt="iXing" class="logo-img">
+                <img src="./public/images/摘星.png" alt="摘星" class="logo-img">
+            </div>
+        </div>
+        
+        <div class="gallery-grid" id="gallery-grid">
+            <!-- Family Photos -->
+            <a href="./public/images/hao-with-family.jpg" class="gallery-item" data-category="family">
+                <img src="./public/images/hao-with-family.jpg" alt="皓皓与家人">
+                <div class="item-overlay">
+                    <span class="item-caption">与家人在一起 👨‍👩‍👦</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/hao-with-dad.jpg" class="gallery-item" data-category="family">
+                <img src="./public/images/hao-with-dad.jpg" alt="皓皓与爸爸">
+                <div class="item-overlay">
+                    <span class="item-caption">父子时光 👨‍👦</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/hao-with-sis.jpg" class="gallery-item" data-category="family">
+                <img src="./public/images/hao-with-sis.jpg" alt="皓皓与妹妹">
+                <div class="item-overlay">
+                    <span class="item-caption">兄妹情深 👫</span>
+                </div>
+            </a>
+            
+            <!-- iXing Team Photos -->
+            <a href="./public/images/6ppl-together.png" class="gallery-item featured" data-category="team">
+                <img src="./public/images/6ppl-together.png" alt="iXing团队合照">
+                <div class="item-overlay">
+                    <span class="item-caption">iXing六人组 🌟</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/hao-with-xuerui+max+fanzhe.jpg" class="gallery-item" data-category="team">
+                <img src="./public/images/hao-with-xuerui+max+fanzhe.jpg" alt="皓皓与雪瑞、Max、范哲">
+                <div class="item-overlay">
+                    <span class="item-caption">团队四人行 🚀</span>
+                </div>
+            </a>
+            
+            <!-- Friends Photos -->
+            <a href="./public/images/haohao-with-fanzhe.jpg" class="gallery-item" data-category="friends">
+                <img src="./public/images/haohao-with-fanzhe.jpg" alt="皓皓与范哲">
+                <div class="item-overlay">
+                    <span class="item-caption">好友时光 🤝</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/haohao-with-wanyue.jpg" class="gallery-item" data-category="friends">
+                <img src="./public/images/haohao-with-wanyue.jpg" alt="皓皓与婉月">
+                <div class="item-overlay">
+                    <span class="item-caption">友谊长存 💕</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/ybh-with-zijin.png" class="gallery-item" data-category="friends">
+                <img src="./public/images/ybh-with-zijin.png" alt="皓皓与子金">
+                <div class="item-overlay">
+                    <span class="item-caption">兄弟情谊 🎮</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/hao-with-tuba.jpg" class="gallery-item" data-category="friends">
+                <img src="./public/images/hao-with-tuba.jpg" alt="皓皓与大号">
+                <div class="item-overlay">
+                    <span class="item-caption">音乐时光 🎺</span>
+                </div>
+            </a>
+            
+            <!-- Special Photos -->
+            <a href="./public/images/杨博皓闪亮登场.png" class="gallery-item featured" data-category="special">
+                <img src="./public/images/杨博皓闪亮登场.png" alt="杨博皓闪亮登场">
+                <div class="item-overlay">
+                    <span class="item-caption">闪亮登场 ✨</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/alotof-haohao.png" class="gallery-item" data-category="special">
+                <img src="./public/images/alotof-haohao.png" alt="多个皓皓">
+                <div class="item-overlay">
+                    <span class="item-caption">分身术 🎭</span>
+                </div>
+            </a>
+            
+            <a href="./public/images/haohao-haircut-vs-icecream.png" class="gallery-item" data-category="special">
+                <img src="./public/images/haohao-haircut-vs-icecream.png" alt="理发VS冰淇淋">
+                <div class="item-overlay">
+                    <span class="item-caption">理发还是冰淇淋？ 🍦</span>
+                </div>
+            </a>
+        </div>
+    </section>
+    
+    <!-- Particle Explosion Canvas -->
+    <canvas id="explosion-canvas"></canvas>
+    
+    <!-- Script -->
+    <script src="./script.js"></script>
+</body>
+</html>
